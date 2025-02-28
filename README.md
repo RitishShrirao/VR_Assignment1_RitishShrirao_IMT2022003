@@ -66,6 +66,15 @@ Output images are saved in the specified output directory and include:
 - `keypoints_combined.jpg`: Visualization of detected keypoints for image stitching.
 - `panorama_result.jpg`: The final stitched panoramic image.
 
+### Sample Results
+#### Coin Detection and Segmentation
+![Coins Detected](images_coin/results/coins_detected.jpg)
+![Coins Segmented](images_coin/results/coins_segmented.jpg)
+
+#### Image Stitching
+![Keypoints Combined](images_pan/results/keypoints_combined.jpg)
+![Panorama Result](images_pan/results/panorama_result.jpg)
+
 ## Repository Structure
 ```
 project_root/
