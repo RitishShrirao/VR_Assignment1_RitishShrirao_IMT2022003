@@ -130,11 +130,13 @@ def main():
     # Create side-by-side display
     combined = np.hstack((original, outlined))
     
-    # Create and display single window with both images
-    cv2.namedWindow("Original | Coins Detected", cv2.WINDOW_NORMAL)
-    cv2.imshow("Original | Coins Detected", combined)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    ## Display original and outlined images
+    # cv2.namedWindow("Original | Coins Detected", cv2.WINDOW_NORMAL)
+    # cv2.imshow("Original | Coins Detected", combined)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+
+    cv2.imwrite("images_coin/coins_detected.jpg", combined)
 
 if __name__ == "__main__":
     main()
