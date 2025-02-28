@@ -70,10 +70,10 @@ def display_keypoints(images):
     # Concatenate images horizontally
     if resized_images:
         combined_image = np.hstack(resized_images)
-        cv2.imshow("All Keypoints", combined_image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        cv2.imwrite("keypoints_combined.jpg", combined_image)
+        # cv2.imshow("All Keypoints", combined_image)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+        cv2.imwrite("images_pan/keypoints_combined.jpg", combined_image)
         print("Combined keypoints image saved as 'keypoints_combined.jpg'")
 
 def stitch_images(images):
@@ -115,10 +115,10 @@ def main():
         panorama = stitch_images(resized_images)
     
     if panorama is not None:
-        cv2.imshow("Panorama", panorama)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        cv2.imwrite("panorama_result.jpg", panorama)
+        # cv2.imshow("Panorama", panorama)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+        cv2.imwrite("images_pan/panorama_result.jpg", panorama)
         print("Panorama created and saved as 'panorama_result.jpg'.")
     else:
         print("Panorama stitching failed. Make sure your images have enough overlap and distinct features.")
