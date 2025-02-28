@@ -1,121 +1,86 @@
-# VR Assignment 1
-
-This repository contains two image processing projects: Coin Detection and Panorama Creation.
+# Coin Detection and Image Stitching Project
 
 ## Table of Contents
-- [Dependencies](#dependencies)
-- [Coin Detection](#coin-detection)
-  - [Methods Used](#coin-detection-methods)
-  - [Results and Observations](#coin-detection-results)
-- [Panorama Creation](#panorama-creation)
-  - [Methods Used](#panorama-methods)
-  - [Results and Observations](#panorama-results)
-- [How to Run](#how-to-run)
+1. [Introduction](#introduction)
+2. [Installation and Dependencies](#installation-and-dependencies)
+3. [Running the Code](#running-the-code)
+4. [Methods Used](#methods-used)
+5. [Results and Observations](#results-and-observations)
+6. [Output Images](#output-images)
+7. [Repository Structure](#repository-structure)
 
-## Dependencies
+## Introduction
+This project involves two main tasks:
+1. **Coin Detection and Segmentation**: Detecting, outlining, and counting coins in an image using edge detection and segmentation techniques.
+2. **Image Stitching**: Aligning and stitching multiple overlapping images to create a panorama using feature detection and transformation techniques.
 
-To run the code in this repository, you'll need the following:
-
-```
-python >= 3.6
-opencv-python
-numpy
-matplotlib
-```
-
-You can install the required packages using:
-
-```bash
-pip install opencv-python numpy matplotlib
+## Installation and Dependencies
+Ensure you have Python installed along with the following dependencies:
+```sh
+pip install opencv-python numpy matplotlib argparse glob2
 ```
 
-## Coin Detection
-
-### Coin Detection Methods
-
-The coin detection algorithm uses the following techniques:
-
-1. **Edge Detection**: Canny edge detection to identify the boundaries of coins
-2. **Contour Detection**: Finding and filtering contours based on circularity and area
-3. **Watershed Algorithm**: For segmentation, especially useful for separating touching or overlapping coins
-4. **Morphological Operations**: Opening and dilation to clean up the image and prepare for segmentation
-
-### Coin Detection Results
-
-The coin detection algorithm successfully identifies circular objects and counts them accurately.
-
-![Coin Detection Result](images_coin/results/coins_detected.jpg)
-
-#### Observations:
-- The algorithm is robust to varying coin sizes
-- Minimum circularity and area thresholds help filter out non-coin objects
-- Watershed segmentation effectively separates touching coins
-
-## Panorama Creation
-
-### Panorama Methods
-
-The panorama creation algorithm employs:
-
-1. **ORB Feature Detection**: Extracts keypoints from each image
-2. **Feature Matching**: Identifies corresponding points between overlapping images
-3. **OpenCV's Stitcher**: Uses the SCANS mode for more robust stitching
-4. **Image Visualization**: Displays detected keypoints and the final panorama
-
-### Panorama Results
-
-The algorithm successfully creates panoramic images from a series of overlapping images.
-
-![Keypoints Visualization](images_pan/results/keypoints_combined.jpg)
-
-![Panorama Result](images_pan/results/panorama_result.jpg)
-
-#### Observations:
-- Image resizing can help when stitching fails with full-sized images
-- The quality of the panorama depends heavily on the number and quality of keypoints
-
-## How to Run
-
+## Running the Code
 ### Coin Detection
-
-```bash
-python coin_detection.py --input_path /path/to/image --output_path /path/to/output_directory
+To detect and segment coins from an image, run:
+```sh
+python coin_detection.py --input_path <path_to_coin_image> --output_path <output_directory>
+```
+Example:
+```sh
+python coin_detection.py --input_path images/coins.jpg --output_path results/
 ```
 
-This will:
-1. Load the coin image from `images_coin/coins.png`
-2. Detect and outline all coins
-3. Apply segmentation to separate individual coins
-4. Display and save the result with the coin count
-
-### Panorama Creation
-
-```bash
-python panaroma_creation.py --input_path /path/to/image_directory --output_path /path/to/output_directory
+### Image Stitching
+To create a panorama from multiple images, run:
+```sh
+python image_stitching.py --input_path <folder_with_images> --output_path <output_directory>
+```
+Example:
+```sh
+python image_stitching.py --input_path images/panorama/ --output_path results/
 ```
 
-This will:
-1. Load all images from the `images_pan/imgs` directory
-2. Detect and display keypoints on each image
-3. Stitch the images together to create a panorama
-4. Display and save both the keypoints visualization and the final panorama
+## Methods Used
+### Coin Detection and Segmentation
+1. **Edge Detection**: Hough Circle Transform is used to detect circular objects (coins) in the image.
+2. **Segmentation**: A mask is applied to segment individual coins from the background.
+3. **Counting**: The total number of detected coins is displayed.
 
-### Dataset Structure
+### Image Stitching
+1. **Feature Detection**: ORB (Oriented FAST and Rotated BRIEF) is used to detect key points.
+2. **Feature Matching**: Key points are matched between overlapping images.
+3. **Homography Estimation**: The transformation between images is computed.
+4. **Panorama Generation**: Images are aligned and blended into a single panoramic image.
 
-The repository follows this structure:
+## Results and Observations
+- The **coin detection** method effectively detects and outlines coins.
+- The **segmentation method** isolates each coin and correctly counts them.
+- The **stitching algorithm** successfully creates a panorama if images have sufficient overlap and distinct features.
+
+## Output Images
+Output images are saved in the specified output directory and include:
+- `coins_detected.jpg`: Coins outlined in the image.
+- `coins_segmented.jpg`: Segmented coins with labels.
+- `coin_X.jpg`: Individual cropped images of each coin.
+- `keypoints_combined.jpg`: Visualization of detected keypoints for image stitching.
+- `panorama_result.jpg`: The final stitched panoramic image.
+
+## Repository Structure
 ```
-.
+project_root/
 ├── coin_detection.py
-├── panaroma_creation.py
-├── images_coin/
-|   ├── coin_detection_result.png
-│   └── coins.png
-├── images_pan/
-├── keypoints_combined.jpg
-├── panorama_result.jpg
-│   └── imgs/
-│       ├── image1.jpg
-│       ├── image2.jpg
-│       └── ...
-```
+├── images_coin
+│   ├── coins.png
+│   └── results
+├── images_pan
+│   ├── imgs
+│   │   ├── 1.png
+│   │   ├── 2.png
+│   │   └── 3.png
+│   └── results
+│       ├── keypoints_combined.jpg
+│       └── panorama_result.jpg
+└── panaroma_creation.py
 
+```
