@@ -44,7 +44,7 @@ The coin detection algorithm uses the following techniques:
 
 The coin detection algorithm successfully identifies circular objects and counts them accurately.
 
-![Coin Detection Result](images_coin/coins_detected.jpg)
+![Coin Detection Result](images_coin/results/coins_detected.jpg)
 
 #### Observations:
 - The algorithm is robust to varying coin sizes
@@ -66,9 +66,9 @@ The panorama creation algorithm employs:
 
 The algorithm successfully creates panoramic images from a series of overlapping images.
 
-![Keypoints Visualization](images_pan/keypoints_combined.jpg)
+![Keypoints Visualization](images_pan/results/keypoints_combined.jpg)
 
-![Panorama Result](images_pan/panorama_result.jpg)
+![Panorama Result](images_pan/results/panorama_result.jpg)
 
 #### Observations:
 - Image resizing can help when stitching fails with full-sized images
