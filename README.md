@@ -73,6 +73,16 @@ project_root/
 ├── images_coin
 │   ├── coins.png
 │   └── results
+│       ├── coin_1.jpg
+│       ├── coin_2.jpg
+│       ├── coin_3.jpg
+│       ├── coin_4.jpg
+│       ├── coin_5.jpg
+│       ├── coin_6.jpg
+│       ├── coin_7.jpg
+│       ├── coin_8.jpg
+│       ├── coins_detected.jpg
+│       └── coins_segmented.jpg
 ├── images_pan
 │   ├── imgs
 │   │   ├── 1.png
