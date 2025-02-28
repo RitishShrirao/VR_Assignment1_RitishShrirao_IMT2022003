@@ -18,13 +18,16 @@ import numpy as np
 from matplotlib import pyplot as plt
 import argparse
 
-def detect_and_outline_coins(image_path, param1=50, param2=30, minRadius=20, maxRadius=100):
+def detect_and_outline_coins(image_path, param1=50, param2=35, minRadius=40, maxRadius=100):
     """
     Detects coins in an image using Hough Circle Transform.
     """
     image = cv2.imread(image_path)
     if image is None:
         raise ValueError("Image not found at path: " + image_path)
+    
+    height, width = image.shape[:2]
+    scale_factor = max(height, width) / 500
     
     # Convert to grayscale and blur to reduce noise
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -36,10 +39,10 @@ def detect_and_outline_coins(image_path, param1=50, param2=30, minRadius=20, max
         cv2.HOUGH_GRADIENT, 
         dp=1,
         minDist=50,
-        param1=param1,
-        param2=param2,
-        minRadius=minRadius,
-        maxRadius=maxRadius
+        param1=int(param1 * scale_factor),
+        param2=int(param2 * scale_factor),
+        minRadius=int(minRadius * scale_factor),
+        maxRadius=int(maxRadius * scale_factor)
     )
     
     # Create contours for each detected circle
