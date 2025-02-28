@@ -1,4 +1,4 @@
-# Coin Detection and Image Stitching Project
+# VR Assignment 1: Coin Detection and Image Stitching
 
 ## Table of Contents
 1. [Introduction](#introduction)
