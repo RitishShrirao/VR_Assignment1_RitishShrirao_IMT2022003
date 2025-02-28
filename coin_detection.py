@@ -16,10 +16,11 @@ c. Count the Total Number of Coins (2 Marks)
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
+import argparse
 
-def detect_and_outline_coins(image_path, min_circularity=0.7, min_area_percentage=0.001):
+def detect_and_outline_coins(image_path, param1=50, param2=30, minRadius=20, maxRadius=100):
     """
-    Detects coins in an image using edge detection and circularity filtering.
+    Detects coins in an image using Hough Circle Transform.
     """
     image = cv2.imread(image_path)
     if image is None:
@@ -27,116 +28,135 @@ def detect_and_outline_coins(image_path, min_circularity=0.7, min_area_percentag
     
     # Convert to grayscale and blur to reduce noise
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    blurred = cv2.GaussianBlur(gray, (11, 11), 0)
+    blurred = cv2.GaussianBlur(gray, (9, 9), 2)
     
-    # Canny edge detection 
-    edged = cv2.Canny(blurred, 30, 150)
+    # Use Hough Circle Transform to detect circular objects (coins)
+    circles = cv2.HoughCircles(
+        blurred, 
+        cv2.HOUGH_GRADIENT, 
+        dp=1,
+        minDist=50,
+        param1=param1,
+        param2=param2,
+        minRadius=minRadius,
+        maxRadius=maxRadius
+    )
     
-    # Find contours from the edges
-    contours, _ = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    
-    # Calculate the minimum area based on image dimensions
-    image_area = image.shape[0] * image.shape[1]
-    min_area_threshold = image_area * min_area_percentage
-    
-    # Filter contours based on circularity and scaled area
+    # Create contours for each detected circle
     coin_contours = []
-    for contour in contours:
-        # Calculate circularity
-        area = cv2.contourArea(contour)
-        perimeter = cv2.arcLength(contour, True)
+    outlined = image.copy()
+    
+    if circles is not None:
+        # Convert the (x, y) coordinates and radius of the circles to integers
+        circles = np.uint16(np.around(circles))
         
-        # Avoid division by zero
-        if perimeter == 0:
-            continue
-        circularity = 4 * np.pi * area / (perimeter ** 2)
-        
-        # Filter based on circularity and scaled minimum area
-        if circularity >= min_circularity and area > min_area_threshold:
+        for circle in circles[0, :]:
+            center = (circle[0], circle[1])
+            radius = circle[2]
+            
+            # Draw the circle on the outlined image
+            cv2.circle(outlined, center, radius, (0, 255, 0), 2)
+            
+            # Create a contour for this circle for segmentation
+            points = []
+            for angle in range(0, 360, 5):  # Sample the circle at every 5 degrees
+                x = int(center[0] + radius * np.cos(np.radians(angle)))
+                y = int(center[1] + radius * np.sin(np.radians(angle)))
+                points.append([x, y])
+                
+            contour = np.array(points).reshape((-1, 1, 2)).astype(np.int32)
             coin_contours.append(contour)
     
-    # Draw coin contours on a copy of the original image
-    outlined = image.copy()
-    cv2.drawContours(outlined, coin_contours, -1, (0, 255, 0), 2)
-    
-    print(f"Total contours detected: {len(contours)}")
-    print(f"Coin contours after circle filtering: {len(coin_contours)}")
+    print(f"Total coins detected: {len(coin_contours)}")
     
     return outlined, coin_contours, image, gray
 
-def segment_coins(image, gray):
+def segment_coins(image, contours):
     """
-    Uses a watershed-based segmentation to separate overlapping coins.
+    Segments individual coins based on the detected contours.
+    Returns individual coin images and a visualization of all segmented coins.
     """
-    # Apply Otsu's thresholding after inverting the image
-    ret, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    # Create a black mask for visualization
+    mask = np.zeros(image.shape, dtype=np.uint8)
     
-    # Remove noise with morphological opening
-    kernel = np.ones((3, 3), np.uint8)
-    opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)
-    
-    # Dilate to obtain sure background
-    sure_bg = cv2.dilate(opening, kernel, iterations=3)
-    
-    # Use distance transform to find sure foreground
-    dist_transform = cv2.distanceTransform(opening, cv2.DIST_L2, 5)
-    ret, sure_fg = cv2.threshold(dist_transform, 0.5 * dist_transform.max(), 255, 0)
-    
-    # Determine unknown region by subtracting foreground from background
-    sure_fg = np.uint8(sure_fg)
-    unknown = cv2.subtract(sure_bg, sure_fg)
-    
-    # Marker labelling for the foreground objects
-    ret, markers = cv2.connectedComponents(sure_fg)
-    
-    # Add one to all labels so that background becomes 1 instead of 0
-    markers = markers + 1
-    
-    # Unknown region marked as 0
-    markers[unknown == 255] = 0
-    
-    # Apply watershed algorithm; boundaries will be marked with -1
-    image_watershed = image.copy()
-    cv2.watershed(image_watershed, markers)
-    image_watershed[markers == -1] = [255, 0, 0]  # Mark boundaries in red
-    
-    # Extract individual coin segments based on unique markers
+    # Create a dictionary to store individual coin segments
     coin_segments = {}
-    for marker in np.unique(markers):
-        if marker <= 1:
-            continue
-        mask = np.zeros(gray.shape, dtype="uint8")
-        mask[markers == marker] = 255
-        coin = cv2.bitwise_and(image, image, mask=mask)
-        coin_segments[marker] = coin
     
-    return image_watershed, coin_segments
+    # Create a copy of the original image for visualization
+    segmented_display = image.copy()
+    
+    # Process each contour
+    for i, contour in enumerate(contours):
+        # Create a mask for this specific coin
+        coin_mask = np.zeros(image.shape[:2], dtype=np.uint8)
+        cv2.drawContours(coin_mask, [contour], -1, 255, -1)
+        
+        # Apply the mask to extract the coin
+        coin = cv2.bitwise_and(image, image, mask=coin_mask)
+        
+        # Store the segmented coin
+        coin_segments[i] = coin
+        
+        # Add this coin to the visualization with a random color
+        color = np.random.randint(0, 255, (3,)).tolist()
+        cv2.drawContours(mask, [contour], -1, color, -1)
+        
+        # Draw contour number on the segmented display
+        M = cv2.moments(contour)
+        if M["m00"] != 0:
+            cX = int(M["m10"] / M["m00"])
+            cY = int(M["m01"] / M["m00"])
+            cv2.putText(segmented_display, f"#{i+1}", (cX-20, cY), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+    
+    # Create a blended visualization
+    alpha = 0.6
+    segmented_viz = cv2.addWeighted(segmented_display, 1-alpha, mask, alpha, 0)
+    
+    return segmented_viz, coin_segments
 
 def count_coins(coin_contours):
+    """Count the total number of coins detected."""
     return len(coin_contours)
 
 def main():
-    # Change this path to the location of your coin image
-    image_path = "images_coin/coins.png"
+    # Argument parser
+    parser = argparse.ArgumentParser(description="Detect and segment coins in an image.")
+    parser.add_argument("--input_path", required=True, help="Path to the input image.")
+    parser.add_argument("--output_path", required=True, help="Path to the output directory.")
+    args = parser.parse_args()
+    
+    input_path = args.input_path
+    output_path = args.output_path
     
     # Detect coins and outline them on the image
-    outlined, coin_contours, original, gray = detect_and_outline_coins(image_path)
+    outlined, coin_contours, original, gray = detect_and_outline_coins(input_path)
     coin_count = count_coins(coin_contours)
     print("Total number of coins detected:", coin_count)
     
-    # Segment coins
-    watershed_img, _ = segment_coins(original, gray)
+    # Segment coins using the improved method
+    segmented_viz, coin_segments = segment_coins(original, coin_contours)
     
-    # Create side-by-side display
-    combined = np.hstack((original, outlined))
+    # Save results
+    cv2.imwrite(f"{output_path}/coins_detected.jpg", outlined)
+    cv2.imwrite(f"{output_path}/coins_segmented.jpg", segmented_viz)
     
-    ## Display original and outlined images
-    # cv2.namedWindow("Original | Coins Detected", cv2.WINDOW_NORMAL)
-    # cv2.imshow("Original | Coins Detected", combined)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
-
-    cv2.imwrite("images_coin/coins_detected.jpg", combined)
+    # Optional: Save individual coin segments
+    for idx, coin in coin_segments.items():
+        # Create a bounding box for the coin to crop it more tightly
+        y_indices, x_indices = np.where(np.any(coin > 0, axis=2))
+        if len(y_indices) > 0 and len(x_indices) > 0:
+            y_min, y_max = np.min(y_indices), np.max(y_indices)
+            x_min, x_max = np.min(x_indices), np.max(x_indices)
+            # Add some padding
+            pad = 5
+            y_min = max(0, y_min - pad)
+            y_max = min(coin.shape[0], y_max + pad)
+            x_min = max(0, x_min - pad)
+            x_max = min(coin.shape[1], x_max + pad)
+            
+            cropped = coin[y_min:y_max, x_min:x_max]
+            cv2.imwrite(f"{output_path}/coin_{idx+1}.jpg", cropped)
 
 if __name__ == "__main__":
     main()
