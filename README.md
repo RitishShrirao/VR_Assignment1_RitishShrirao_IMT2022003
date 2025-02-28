@@ -79,7 +79,7 @@ The algorithm successfully creates panoramic images from a series of overlapping
 ### Coin Detection
 
 ```bash
-python coin_detection.py
+python coin_detection.py --input_path /path/to/image --output_path /path/to/output_directory
 ```
 
 This will:
@@ -91,7 +91,7 @@ This will:
 ### Panorama Creation
 
 ```bash
-python panaroma_creation.py
+python panaroma_creation.py --input_path /path/to/image_directory --output_path /path/to/output_directory
 ```
 
 This will:
