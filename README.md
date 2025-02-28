@@ -44,7 +44,7 @@ The coin detection algorithm uses the following techniques:
 
 The coin detection algorithm successfully identifies circular objects and counts them accurately.
 
-![Coin Detection Result](images_coin/coin_detection_result.png)
+![Coin Detection Result](images_coin/coins_detected.jpg)
 
 #### Observations:
 - The algorithm is robust to varying coin sizes
