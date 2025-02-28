@@ -9,6 +9,8 @@ b. Image Stitching (2 Marks)
 import cv2
 import numpy as np
 import glob
+import argparse
+import os
 
 def load_images(image_folder):
     """
@@ -35,7 +37,7 @@ def load_images(image_folder):
     
     return images
 
-def display_keypoints(images):
+def display_keypoints(images, output_path):
     """
     Detects and displays keypoints for all images side by side.
     """
@@ -73,8 +75,9 @@ def display_keypoints(images):
         # cv2.imshow("All Keypoints", combined_image)
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
-        cv2.imwrite("images_pan/keypoints_combined.jpg", combined_image)
-        print("Combined keypoints image saved as 'keypoints_combined.jpg'")
+        output_path = os.path.join(output_path, "keypoints_combined.jpg")
+        cv2.imwrite(output_path, combined_image)
+        print(f"Combined keypoints image saved as '{output_path}'")
 
 def stitch_images(images):
     """
@@ -85,8 +88,17 @@ def stitch_images(images):
     return panorama
 
 def main():
-    # Change this path to your folder containing overlapping images for panorama
-    image_folder = "images_pan/imgs"
+    parser = argparse.ArgumentParser(description="Create a panorama from overlapping images.")
+    parser.add_argument("--input_path", required=True, help="Path to the folder containing input images.")
+    parser.add_argument("--output_path", required=True, help="Path to the folder where the panorama will be saved.")
+    args = parser.parse_args()
+    
+    image_folder = args.input_path
+    output_path = args.output_path
+    
+    # Create the output directory if it doesn't exist
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
     
     images = load_images(image_folder)
     if len(images) < 2:
@@ -95,7 +107,7 @@ def main():
     
     print(f"Loaded {len(images)} images")
     
-    display_keypoints(images)
+    display_keypoints(images, output_path)
     
     # Try different image resizing to help with stitching
     resized_images = []
@@ -115,11 +127,9 @@ def main():
         panorama = stitch_images(resized_images)
     
     if panorama is not None:
-        # cv2.imshow("Panorama", panorama)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
-        cv2.imwrite("images_pan/panorama_result.jpg", panorama)
-        print("Panorama created and saved as 'panorama_result.jpg'.")
+        output_path = os.path.join(output_path, "panorama_result.jpg")
+        cv2.imwrite(output_path, panorama)
+        print(f"Panorama created and saved as '{output_path}'.")
     else:
         print("Panorama stitching failed. Make sure your images have enough overlap and distinct features.")
 
